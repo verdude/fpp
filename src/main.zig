@@ -1,4 +1,5 @@
 const std = @import("std");
+const Args = @import("args.zig");
 
 const Interface = struct {
     writer: *std.Io.Writer,
@@ -55,10 +56,15 @@ const Impl = struct {
 };
 
 pub fn main() !void {
+    var args = Args.init();
+    try args.parse();
     const dir = std.fs.cwd();
-    const file = try dir.createFile("output.txt", .{});
-    var buf: [1024]u8 = undefined;
-    var writer = file.writer(&buf);
+    var writer: std.fs.File.Writer = undefined;
+    if (args.safe) {
+        const file = try dir.createFile("output.txt", .{});
+        var buf: [1024]u8 = undefined;
+        writer = file.writer(&buf);
+    }
     var impl = Impl.init(&writer.interface);
     try impl.interface.greet();
     try impl.flush();
