@@ -1,7 +1,7 @@
 const std = @import("std");
 
 const Interface = struct {
-    writer: std.Io.Writer,
+    writer: *std.Io.Writer,
     vtable: Vtable,
 
     const Vtable = struct {
@@ -28,7 +28,7 @@ const Impl = struct {
         try i.writer.print("{s}", .{self.poopoo orelse "placeholder"});
         _ = try i.writer.write(" - Oh I love agriculture. ");
         try i.writer.print(
-            "\n{*}\n{*}\n{*}\n{*}\n{*}\n",
+            "\n{*}\n{*}\n{*}\n{*}\n",
             .{
                 self,
                 &self.poopoo,
@@ -42,7 +42,7 @@ const Impl = struct {
         return self.interface.flush();
     }
 
-    pub fn init(writer: std.Io.Writer) Impl {
+    pub fn init(writer: *std.Io.Writer) Impl {
         return .{
             .interface = .{
                 .vtable = .{
@@ -58,7 +58,8 @@ pub fn main() !void {
     const dir = std.fs.cwd();
     const file = try dir.createFile("output.txt", .{});
     var buf: [1024]u8 = undefined;
-    var impl = Impl.init(file.writer(&buf).interface);
-    try impl.interface.greet(&impl.interface);
+    var writer = file.writer(&buf);
+    var impl = Impl.init(&writer.interface);
+    try impl.interface.greet();
     try impl.flush();
 }
